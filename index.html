@@ -393,13 +393,20 @@
                 clickButton.disabled = true;
                 if (err.name === 'NotAllowedError') {
                     statusSpan.textContent = 'Error: Izin kamera ditolak. Mohon izinkan akses kamera di pengaturan browser Anda.';
-                    showModal('Izin Kamera Ditolak!', 'Aplikasi ini membutuhkan akses kamera. Mohon izinkan akses kamera di pengaturan browser Anda (biasanya di bagian "Situs" atau "Izin").');
+                    showModal('Izin Kamera Ditolak!', 'Aplikasi ini membutuhkan akses kamera. Mohon izinkan akses kamera di pengaturan browser Anda (biasanya di bagian "Situs" atau "Izin") dan muat ulang halaman ini.');
                 } else if (err.name === 'NotFoundError') {
                     statusSpan.textContent = 'Error: Kamera tidak ditemukan. Pastikan perangkat Anda memiliki kamera yang berfungsi.';
-                    showModal('Kamera Tidak Ditemukan!', 'Tidak ada kamera yang terdeteksi di perangkat ini.');
-                } else {
+                    showModal('Kamera Tidak Ditemukan!', 'Tidak ada kamera yang terdeteksi di perangkat ini. Pastikan perangkat Anda memiliki kamera yang berfungsi dan terhubung dengan baik.');
+                } else if (err.name === 'NotReadableError') {
+                    statusSpan.textContent = 'Error: Kamera sedang digunakan oleh aplikasi lain atau tidak dapat diakses.';
+                    showModal('Kamera Tidak Dapat Diakses!', 'Kamera Anda mungkin sedang digunakan oleh aplikasi lain atau ada masalah perangkat keras. Coba tutup aplikasi lain yang menggunakan kamera atau restart perangkat Anda.');
+                } else if (err.name === 'OverconstrainedError') {
+                    statusSpan.textContent = 'Error: Konfigurasi kamera tidak didukung.';
+                    showModal('Konfigurasi Kamera Tidak Didukung!', 'Browser tidak dapat menemukan kamera yang sesuai dengan pengaturan yang diminta (misalnya, resolusi atau mode menghadap).');
+                }
+                else {
                     statusSpan.textContent = `Error: Gagal mengakses kamera. (${err.name})`;
-                    showModal('Gagal Mengakses Kamera!', `Terjadi kesalahan saat mencoba mengakses kamera: ${err.message}.`);
+                    showModal('Gagal Mengakses Kamera!', `Terjadi kesalahan tidak dikenal saat mencoba mengakses kamera: ${err.message}.`);
                 }
             }
         });
@@ -466,7 +473,7 @@
                         console.error("Gagal mendapatkan lokasi: ", error);
                         if (error.code === error.PERMISSION_DENIED) {
                             statusSpan.textContent = 'Error: Izin lokasi ditolak. Mohon izinkan akses lokasi di pengaturan browser Anda.';
-                            showModal('Izin Lokasi Ditolak!', 'Aplikasi ini membutuhkan akses lokasi Anda. Mohon izinkan akses lokasi di pengaturan browser Anda (biasanya di bagian "Situs" atau "Izin").');
+                            showModal('Izin Lokasi Ditolak!', 'Aplikasi ini membutuhkan akses lokasi Anda. Mohon izinkan akses lokasi di pengaturan browser Anda (biasanya di bagian "Situs" atau "Izin") dan muat ulang halaman ini.');
                         } else if (error.code === error.POSITION_UNAVAILABLE) {
                             statusSpan.textContent = 'Error: Lokasi tidak tersedia. Pastikan GPS aktif dan sinyal bagus.';
                             showModal('Lokasi Tidak Tersedia!', 'Perangkat Anda tidak dapat menentukan lokasi. Pastikan GPS aktif dan Anda berada di area dengan sinyal yang baik.');

@@ -376,6 +376,15 @@
                     stream.getTracks().forEach(track => track.stop());
                 }
 
+                // Check if Leaflet is loaded before initializing map
+                // This helps prevent "L is not defined" errors if the Leaflet script fails to load.
+                if (typeof L === 'undefined') {
+                    showModal('Error Peta!', 'Library peta (Leaflet) gagal dimuat. Pastikan koneksi internet stabil atau coba muat ulang halaman.');
+                    console.error('Leaflet library (L) is not defined. Map initialization skipped.');
+                    return; // Stop execution if Leaflet isn't loaded
+                }
+
+
                 // Request camera permission
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
                 video.srcObject = stream;
@@ -413,6 +422,12 @@
 
         // --- Function to initialize the Leaflet map ---
         function initMap() {
+            // Ensure L is defined before proceeding
+            if (typeof L === 'undefined') {
+                console.error('Leaflet library (L) is not defined. Cannot initialize map.');
+                return;
+            }
+
             if (map === null) {
                 // Initialize map with a default coordinate (e.g., center of Fakfak)
                 // These coordinates will be updated once the location is obtained

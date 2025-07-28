@@ -2,140 +2,112 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>GeoCam Fakfak - TM3 53.1</title>
+  <title>GeoCam Fakfak</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4f4f4;
       text-align: center;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 10px;
     }
-    video, canvas {
+    video, canvas, #map {
+      max-width: 400px;
       width: 100%;
-      max-width: 400px;
-      border-radius: 10px;
-    }
-    #map {
-      height: 200px;
-      margin: 10px auto;
-      max-width: 400px;
+      border-radius: 8px;
+      margin-bottom: 10px;
     }
     button {
       padding: 10px 20px;
       font-size: 1rem;
-      margin-top: 10px;
+      cursor: pointer;
     }
     #info {
-      margin: 10px;
       font-size: 0.9rem;
+      margin-bottom: 10px;
     }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-
-  <h2>📸 GeoCam Fakfak - TM3 53.1</h2>
-
+  <h2>📸 GeoCam Fakfak</h2>
   <video id="video" autoplay playsinline></video><br>
   <button onclick="takePhoto()">📷 Ambil Foto</button>
-  <canvas id="canvas" style="display:none;"></canvas>
-  <div id="info"></div>
+  <div id="info">Mendeteksi lokasi...</div>
   <div id="map"></div>
+  <canvas id="canvas" style="display:none;"></canvas>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
     const info = document.getElementById("info");
-    let latlng = [0, 0];
-    let alamat = "Mengambil alamat...";
-    let map;
+    let lat = 0, lon = 0, alamat = "Mencari alamat...";
+    let map, miniMapImg;
 
-    // Akses kamera
+    // Aktifkan kamera
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => video.srcObject = stream)
       .catch(err => alert("Kamera gagal dibuka: " + err));
 
-    // Dapatkan lokasi GPS
+    // Ambil lokasi
     navigator.geolocation.getCurrentPosition(pos => {
-      latlng = [pos.coords.latitude, pos.coords.longitude];
-      tampilkanPeta(latlng);
-      konversiAlamat(latlng);
+      lat = pos.coords.latitude;
+      lon = pos.coords.longitude;
+      getAlamat(lat, lon);
+      loadMap(lat, lon);
     }, err => {
-      alert("Gagal mendapatkan lokasi: " + err.message);
+      alert("Gagal mengambil lokasi: " + err.message);
     });
 
-    function takePhoto() {
-      const context = canvas.getContext("2d");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0);
-
-      // Konversi ke TM3 53.1
-      const tm3 = wgs84ToTM3(latlng[1], latlng[0]);
-
-      // Tambahkan info koordinat dan alamat ke foto
-      context.fillStyle = "rgba(0, 0, 0, 0.5)";
-      context.fillRect(0, canvas.height - 90, canvas.width, 90);
-      context.fillStyle = "white";
-      context.font = "16px sans-serif";
-      context.fillText(`TM3 53.1 X: ${tm3.x.toFixed(2)} Y: ${tm3.y.toFixed(2)}`, 10, canvas.height - 60);
-      context.fillText(`Alamat: ${alamat}`, 10, canvas.height - 35);
-      context.fillText(`LatLng: ${latlng[0].toFixed(6)}, ${latlng[1].toFixed(6)}`, 10, canvas.height - 10);
-
-      // Simpan gambar
-      const link = document.createElement("a");
-      link.download = "foto_tm3_fakfak.jpg";
-      link.href = canvas.toDataURL("image/jpeg");
-      link.click();
-    }
-
-    function tampilkanPeta(coord) {
-      map = L.map('map').setView(coord, 15);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
-      }).addTo(map);
-      L.marker(coord).addTo(map).bindPopup("Lokasi Anda").openPopup();
-    }
-
-    function konversiAlamat([lat, lon]) {
+    function getAlamat(lat, lon) {
       fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
         .then(res => res.json())
         .then(data => {
-          alamat = data.display_name || "Tidak ditemukan";
-          info.innerHTML = `<b>Alamat:</b> ${alamat}<br><b>Koordinat:</b> ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+          alamat = data.display_name || "Alamat tidak ditemukan";
+          info.innerHTML = `<b>Lat:</b> ${lat.toFixed(6)} <b>Lon:</b> ${lon.toFixed(6)}<br><b>Alamat:</b> ${alamat}`;
         });
     }
 
-    // Konversi WGS84 ke TM3 53.1 (estimasi kasar)
-    function wgs84ToTM3(lon, lat) {
-      const deg2rad = d => d * Math.PI / 180;
-      const k0 = 0.9999;
-      const a = 6378137.0;
-      const e = 0.081819191;
-      const lon0 = 129; // TM3 53.1 = 129°E
-      const dx = 500000;
+    function loadMap(lat, lon) {
+      map = L.map('map').setView([lat, lon], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+      }).addTo(map);
+      L.marker([lat, lon]).addTo(map).bindPopup("Lokasi Anda").openPopup();
+    }
 
-      const φ = deg2rad(lat);
-      const λ = deg2rad(lon);
-      const λ0 = deg2rad(lon0);
+    async function takePhoto() {
+      // Ambil gambar dari video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight + 130; // tambah tinggi untuk teks + peta kecil
+      const ctx = canvas.getContext("2d");
 
-      const N = a / Math.sqrt(1 - Math.pow(e * Math.sin(φ), 2));
-      const T = Math.pow(Math.tan(φ), 2);
-      const C = Math.pow(e * Math.cos(φ), 2) / (1 - Math.pow(e, 2));
-      const A = (λ - λ0) * Math.cos(φ);
+      ctx.drawImage(video, 0, 0); // gambar utama
 
-      const M = a * ((1 - Math.pow(e,2)/4 - 3*Math.pow(e,4)/64 - 5*Math.pow(e,6)/256)*φ
-        - (3*Math.pow(e,2)/8 + 3*Math.pow(e,4)/32 + 45*Math.pow(e,6)/1024)*Math.sin(2*φ)
-        + (15*Math.pow(e,4)/256 + 45*Math.pow(e,6)/1024)*Math.sin(4*φ)
-        - (35*Math.pow(e,6)/3072)*Math.sin(6*φ));
+      // Gambar info teks
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(0, video.videoHeight, canvas.width, 130);
+      ctx.fillStyle = "#fff";
+      ctx.font = "16px sans-serif";
+      ctx.fillText(`Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`, 10, video.videoHeight + 25);
+      ctx.fillText(`Alamat: ${alamat.slice(0, 60)}...`, 10, video.videoHeight + 50);
 
-      const x = dx + k0 * N * (A + (1 - T + C)*Math.pow(A,3)/6 + (5 - 18*T + T*T)*Math.pow(A,5)/120);
-      const y = k0 * (M + N * Math.tan(φ) * (Math.pow(A,2)/2 + (5 - T + 9*C + 4*C*C)*Math.pow(A,4)/24));
+      // Ambil gambar peta sebagai image (static map style)
+      const mapURL = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=16&size=300x100&markers=${lat},${lon},red-pushpin`;
+      const mapImg = new Image();
+      mapImg.crossOrigin = "anonymous";
+      mapImg.src = mapURL;
+      mapImg.onload = () => {
+        ctx.drawImage(mapImg, canvas.width - 310, video.videoHeight + 5, 300, 100);
 
-      return { x, y };
+        // Simpan
+        const link = document.createElement("a");
+        link.download = `foto-lokasi-fakfak.jpg`;
+        link.href = canvas.toDataURL("image/jpeg");
+        link.click();
+      };
     }
   </script>
 </body>

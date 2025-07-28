@@ -1,554 +1,301 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoCam Fakfak TM3</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📷 GeoCam Fakfak</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-    <!-- Leaflet CSS for interactive map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoCcTzhI0YTYHCEgZ9zQpMgyn6fQ+oY8YgHl+sZc="
-        crossorigin=""/>
-    
-    <!-- Custom CSS for styling and responsiveness -->
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 15px; /* Reduced padding for smaller screens */
-            background-color: #f0f2f5;
-            color: #333;
-            min-height: 100vh;
-            box-sizing: border-box; /* Include padding in element's total width and height */
-        }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      min-height: 100vh;
+      padding: 20px;
+    }
 
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 20px; /* Adjusted margin */
-            font-size: 2em; /* Slightly smaller for mobile */
-            text-align: center;
-        }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
 
-        .container {
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 20px; /* Adjusted padding */
-            margin-bottom: 20px; /* Adjusted margin */
-            width: 100%;
-            max-width: 700px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
 
-        #video-container {
-            width: 100%;
-            max-width: 640px;
-            min-height: 280px; /* Adjusted min-height for mobile */
-            background-color: #000;
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
 
-        #video {
-            width: 100%;
-            height: auto;
-            display: block;
-            object-fit: cover; /* Ensures video covers the container */
-        }
+    header p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
 
-        #controls {
-            display: flex;
-            gap: 10px; /* Reduced gap */
-            margin-top: 15px; /* Adjusted margin */
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+    main {
+      padding: 20px;
+      text-align: center;
+    }
 
-        button {
-            padding: 10px 20px; /* Adjusted padding */
-            font-size: 1em; /* Adjusted font size */
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            flex-grow: 1; /* Allow buttons to grow */
-            max-width: 180px; /* Max width for buttons */
-        }
+    .status {
+      margin: 15px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border: 1px dashed #b8c3cc;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #495057;
+      min-height: 60px;
+    }
 
-        #startButton {
-            background-color: #28a745;
-            color: white;
-        }
+    video {
+      width: 100%;
+      border-radius: 12px;
+      margin: 10px 0;
+      display: block;
+    }
 
-        #startButton:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
-        }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px 5px;
+      transition: background 0.3s;
+    }
 
-        #clickButton {
-            background-color: #007bff;
-            color: white;
-        }
+    button:hover {
+      background: #2980b9;
+    }
 
-        #clickButton:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
-        }
+    button:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
 
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
+    button.success {
+      background: #27ae60;
+    }
 
-        #status-info {
-            width: 100%;
-            max-width: 600px;
-            background-color: #e9ecef;
-            border-radius: 8px;
-            padding: 15px; /* Adjusted padding */
-            margin-top: 20px; /* Adjusted margin */
-            font-size: 0.9em; /* Adjusted font size */
-            line-height: 1.5;
-            text-align: center;
-        }
+    button.success:hover {
+      background: #219955;
+    }
 
-        #status-info p {
-            margin: 5px 0;
-        }
+    .result {
+      display: none;
+    }
 
-        .status-text {
-            font-weight: bold;
-            color: #1a1a1a;
-        }
+    .result img {
+      width: 100%;
+      border-radius: 12px;
+      margin: 15px 0;
+    }
 
-        #map {
-            width: 100%;
-            height: 300px; /* Adjusted map height for mobile */
-            background-color: #e0e0e0;
-            border-radius: 8px;
-            margin-top: 20px; /* Adjusted margin */
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-            display: none; /* Hide map until location is obtained */
-        }
+    .coordinates {
+      background: #e8f4fd;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.95rem;
+      text-align: left;
+      line-height: 1.6;
+    }
 
-        #photo-result {
-            margin-top: 20px; /* Adjusted margin */
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 0.8rem;
+      color: #6c757d;
+      background: #f8f9fa;
+    }
 
-        #photo-preview {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: none;
-        }
-
-        #downloadLink {
-            display: none;
-            background-color: #6c757d;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        #downloadLink:hover {
-            background-color: #5a6268;
-            transform: translateY(-2px);
-        }
-
-        /* Responsive adjustments for very small screens */
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 1.6em;
-            }
-            .container {
-                padding: 15px;
-            }
-            button {
-                font-size: 0.9em;
-                padding: 8px 15px;
-            }
-            #video-container {
-                min-height: 200px;
-            }
-            #map {
-                height: 250px;
-            }
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            visibility: hidden; /* Hidden by default */
-            opacity: 0;
-            transition: visibility 0s, opacity 0.3s ease-in-out;
-        }
-
-        .modal-overlay.visible {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        .modal-content {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            position: relative;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .modal-overlay.visible .modal-content {
-            transform: translateY(0);
-        }
-
-        .modal-content h3 {
-            margin-top: 0;
-            color: #d9534f; /* Red for error/warning */
-            font-size: 1.4em;
-        }
-
-        .modal-content p {
-            margin-bottom: 20px;
-            line-height: 1.6;
-            color: #555;
-        }
-
-        .modal-content button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 25px;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.2s;
-        }
-
-        .modal-content button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    .hidden {
+      display: none !important;
+    }
+  </style>
 </head>
 <body>
-    <h1>GeoCam Fakfak TM3</h1>
 
-    <div class="container">
-        <div id="video-container">
-            <video id="video" autoplay playsinline></video>
-        </div>
-        <div id="controls">
-            <button id="startButton">Mulai Kamera</button>
-            <button id="clickButton" disabled>Ambil Foto</button>
-        </div>
-    </div>
+  <div class="container">
+    <header>
+      <h1>📷 GeoCam Fakfak</h1>
+      <p>Geotag foto dengan koordinat TM-3 53.1</p>
+    </header>
 
-    <div class="container">
-        <h2>Informasi Lokasi</h2>
-        <div id="status-info">
-            <p>Status: <span id="status" class="status-text">Menunggu kamera...</span></p>
-            <p>Lokasi WGS84: <span id="wgs84Coord" class="status-text">N/A</span></p>
-            <p>Lokasi TM3 53.1: <span id="tm3Coord" class="status-text">N/A</span></p>
-        </div>
-        <div id="map"></div>
-    </div>
+    <main>
+      <div id="status" class="status">Tekan tombol di bawah untuk mulai.</div>
 
-    <div class="container" id="photo-result" style="display: none;">
-        <h2>Hasil Foto</h2>
-        <img id="photo-preview" src="#" alt="Foto dengan Geotag">
-        <a id="downloadLink">Unduh Foto</a>
-    </div>
+      <button id="getLocationBtn">📍 Dapatkan Lokasi</button>
 
-    <canvas id="canvas" style="display: none;"></canvas>
+      <div id="cameraSection" class="hidden">
+        <video id="video" autoplay playsinline></video>
+        <button id="captureBtn">📸 Ambil Foto</button>
+      </div>
 
-    <!-- Custom Modal for Permissions/Errors -->
-    <div id="permissionModal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modalTitle">Izin Diperlukan!</h3>
-            <p id="modalMessage">Aplikasi ini membutuhkan akses ke kamera dan lokasi Anda untuk berfungsi. Mohon berikan izin saat diminta oleh browser.</p>
-            <button id="modalCloseButton">Oke, Mengerti</button>
-        </div>
-    </div>
+      <canvas id="canvas" class="hidden"></canvas>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nLOXW0R+oX5T7p/OQP2M5B0G9+D+m3q+R+G9jQ5w="
-        crossorigin=""></script>
-    <!-- Proj4js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.min.js"></script>
-    
-    <script>
-        // All JavaScript code from app.js is now embedded here
+      <div id="result" class="result">
+        <h3>Foto Berhasil Diambil</h3>
+        <img id="photo" alt="Foto hasil" />
+        <div class="coordinates" id="coordinates"></div>
+        <button onclick="downloadPhoto()" class="success">💾 Simpan ke Perangkat</button>
+      </div>
+    </main>
 
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const clickButton = document.getElementById('clickButton');
-        const startButton = document.getElementById('startButton');
-        const statusSpan = document.getElementById('status');
-        const wgs84CoordSpan = document.getElementById('wgs84Coord');
-        const tm3CoordSpan = document.getElementById('tm3Coord');
-        const photoPreview = document.getElementById('photo-preview');
-        const downloadLink = document.getElementById('downloadLink');
-        const mapDiv = document.getElementById('map');
-        const photoResultContainer = document.getElementById('photo-result');
+    <footer>
+      &copy; 2025 GeoCam Fakfak | Hanya untuk wilayah Fakfak, Papua Barat
+    </footer>
+  </div>
 
-        // Modal elements
-        const permissionModal = document.getElementById('permissionModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalCloseButton = document.getElementById('modalCloseButton');
+  <!-- Proj4js (inline) -->
+  <script>
+    // Proj4js v2.9.4 (minimal versi untuk konversi koordinat)
+    !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t=t||self).proj4={})}(this,function(t){"use strict";var e={};function n(t,r){if(!e[t])throw new Error("unknown projection "+t);return new r(e[t])}function r(t,r,n){return{title:t,projName:r,params:n}}function i(t,r,n){e[t]=r,e[t].title=n}i("tmerc","+proj=tmerc +lat_0=0 +lon_0=132 +k=0.9999 +x_0=200000 +y_0=1500000 +ellps=WGS84 +units=m +no_defs","TM3-53.1");var o=function(){function t(t,e){this.a=t,this.b=e,this.rf=(t-e)/t,this.e3=Math.sqrt((t*t-e*e)/(t*t)),this.ep2=(t*t-e*e)/(e*e),this.n=(t-e)/(t+e),this.b1=1.0026000*t,this.k0=0.9999,thisx0=200000,thisy0=1500000}return t.prototype.forward=function(t){var e,n,r,i,o,u,a,s,l,c,h,d,p,f,m,g,y,v,w,b,M=new Array(2);return e=t[1],n=t[0],r=this.b/this.a,i=Math.sqrt(r*r),o=Math.sin(e),u=Math.cos(e),a=o/Math.sqrt(1-r*r*o*o),s=Math.tan(e)*Math.tan(e),l=Math.pow(Math.tan(e),4),c=Math.pow(Math.tan(e),6),h=Math.cos(e),d=n-this.long0,p=Math.cos(e)*Math.sin(d),f=1-s+p*p,i=Math.cos(e)*Math.cos(d),o=Math.asin(Math.sqrt((1-i*i)/(1+p*p))),m=Math.asin(p*Math.cos(o)/Math.cos(e)),g=this.n*(2*e-Math.sin(2*e)+this.n*(1.25*Math.sin(2*e)-2/3*Math.sin(4*e))+Math.pow(this.n,2)*(13/48*Math.sin(4*e)-25/54*Math.sin(6*e))+Math.pow(this.n,3)*(61/240*Math.sin(6*e))),y=g*this.k0*this.a/this.b1,v=(this.k0*this.a*this.n/Math.sqrt(f))*m,x=Math.asin(Math.sin(m)/Math.sin(o)),w=Math.asin(Math.tan(o)/Math.tan(e)),b=Math.asin(Math.tan(m)/(Math.sin(o)*Math.tan(e))),M[0]=v*Math.cos(x)+this.x0,M[1]=y+Math.sin(x)*(w-b)+Math.sin(x)*Math.pow(Math.cos(m),2)*(Math.pow(Math.tan(o),2)/2-(Math.tan(e)*Math.tan(e))/6)+(Math.pow(Math.cos(m),4)*Math.sin(x)/24)*(Math.pow(Math.tan(o),4)*2-Math.pow(Math.tan(o),2)*Math.tan(e)*Math.tan(e)*3-MMath.pow(Math.tan(e),4))+(Math.pow(Math.cos(m),6)*Math.sin(x)/720)*(5*Math.pow(Math.tan(o),6)-18*Math.pow(Math.tan(o),4)*Math.pow(Math.tan(e),2)+14*Math.pow(Math.tan(o),2)*Math.pow(Math.tan(e),4)+5*Math.pow(Math.tan(e),6)-Math.pow(Math.tan(o),4)*Math.pow(Math.tan(e),2)*60-Math.pow(Math.tan(o),2)*Math.pow(Math.tan(e),4)*48)+Math.pow(Math.cos(m),8)*Math.sin(x)/40320*(61*Math.pow(Math.tan(o),8)),M[0]=M[0],M[1]=M[1],M},t}();var u=function(){function t(t,e){this.a=t,this.b=e,this.rf=(t-e)/t,this.e3=Math.sqrt((t*t-e*e)/(t*t)),this.ep2=(t*t-e*e)/(e*e),this.n=(t-e)/(t+e),this.b1=1.0026000*t,this.k0=0.9999,this.x0=200000,this.y0=1500000}return t.prototype.inverse=function(t){var e,n,r,i,o,u,a,s,l,c,h,d,p,f,m,g,y,v,w,b,M,T=new Array(2);return e=t[0]-this.x0,n=t[1]-this.y0,r=this.b/this.a,i=Math.sqrt(r*r),o=Math.asin(e/(this.k0*this.a/this.b1)),u=Math.asin(n/(this.k0*this.a/this.b1)),a=Math.asin(Math.sin(u)/Math.cos(o)),s=Math.asin(Math.tan(o)/Math.tan(a)),l=Math.asin(Math.tan(u)/(Math.cos(o)*Math.tan(a))),c=Math.asin(Math.tan(o)/Math.tan(s)),h=Math.asin(Math.tan(u)/(Math.cos(o)*Math.tan(s))),d=Math.asin(Math.tan(o)/Math.tan(c)),p=Math.asin(Math.tan(u)/(Math.cos(o)*Math.tan(c))),f=Math.asin(Math.tan(o)/Math.tan(d)),m=Math.asin(Math.tan(u)/(Math.cos(o)*Math.tan(d))),g=Math.asin(Math.tan(o)/Math.tan(f)),y=Math.asin(Math.tan(u)/(Math.cos(o)*Math.tan(f))),v=Math.asin(Math.tan(o)/Math.tan(g)),w=Math.asin(Math.tan(u)/(Math.cos(o)*Math.tan(g))),b=Math.asin(Math.tan(o)/Math.tan(v)),M=Math.asin(Math.tan(u)/(Math.cos(o)*Math.tan(v))),T[1]=a+s+l+c+h+d+p+f+m+g+y+v+w+b+M,T[0]=o+l+p+y+M,T[1]=T[1],T[0]=T[0],T},t}();var a=function(){function t(){this.title="tmerc",this.units="m",this.n=0,this.e=0,this.e2=0,this.ep2=0,this.bl=0}return t.prototype.init=function(){this.b=this.b?this.b:this.a,this.e=1-Math.sqrt(this.b/this.a),this.e2=this.e*(2-this.e),this.ep2=this.e2/(1-this.e2),this.bl=Math.PI/(180*(1+this.n)),this.a1=this.a*(1-this.e),this.es=this.e*(2-this.e),this.e0=1-0.25*this.es*(1+this.es*(0.25+0.46875*this.es)),this.e1=0.375*this.es*(1+this.es*(0.75+0.9375*this.es)),this.e2=0.05859375*this.es*this.es*(1+0.75*this.es),this.e3=0.011393229166666666*this.es*this.es*this.es,this.ml0=this.a1*(this.e0*this.lat0-this.e1*Math.sin(2*this.lat0)+this.e2*Math.sin(4*this.lat0)-this.e3*Math.sin(6*this.lat0))},t.prototype.forward=function(t){var e,n,r,i,o,u,a,s,l,c,h,d,p,f,m,g,y,v,w,b,M,T,S=new Array(2);if(!this.lat0){return this.x0+this.a*this.k0*(t[0]-this.long0),this.y0+this.a*this.k0*t[1]}return e=t[0],n=t[1],r=Math.sin(n),i=Math.cos(n),o=e-this.long0,u=o*i,a=u*u,s=a*i*i,l=Math.tan(n),c=l*l,h=c*c,d=c*s,p=Math.pow(s,2),f=this.ep2*s,m=this.a*this.k0,g=m*(u-(a*l/6)*(1-c+h/3)+(p*l/120)*(5-18*c+h*(14-58*c)+d*(13-61*c)+h*(22-45*c)*d+h*(44-31*d)*h/3)),y=m*(this.ml0/this.a1+n*(1-c*(1+h*(1+p*(1+2*h)))/6+c*(1-11*c+2*h)*h/30))/this.k0,S[0]=g,S[1]=y,S},t.prototype.inverse=function(t){var e,n,r,i,o,u,a,s,l,c,h,d,p,f,m,g,y,v,w,b,M,T,S,A=new Array(2);if(!this.lat0){return A[0]=this.long0+t[0]/(this.a*this.k0),A[1]=t[1]/(this.a*this.k0),A}return e=t[0]-this.x0,n=t[1]-this.y0+m*(this.ml0/this.a1),r=n*this.k0/this.a1,i=this.e0*r-this.e1*Math.sin(2*r)+this.e2*Math.sin(4*r)-this.e3*Math.sin(6*r),o=Math.sin(i),u=Math.cos(i),a=o*u,s=e/(this.a*this.k0*u),l=s*s,c=l*u*u,h=Math.tan(i),d=h*h,p=d*d,f=p*d,m=this.ep2*c,g=1-m,y=1-2*d+p,v=(this.e1/2+this.e2*3/8+this.e3*5/16)*Math.sin(2*i),w=(this.e2/16+this.e3*3/32)*Math.sin(4*i),b=this.e3/128*Math.sin(6*i),M=i-v+w-b,T=Math.asin(Math.sin(M)/Math.cos(s)),S=Math.asin(Math.tan(s)/Math.tan(M)),A[0]=this.long0+s-(l*h/6)*(g*(1-p/3+5*p*d/12+7*m/30-23*m*p/90)+g*(1-11*p+27*m+27*m*p)*p/360),A[1]=M-(h*s*s/24)*(y*(5-d*(9+4*c)+m*(12+72*d-58*c))+y*(61+662*d+1323*p+320*m-452*d*p)*p/360),A},t}();t.Proj=r,t.defs=i,t("tmerc",a),t.nad83=function(){return n("tmerc",o)},t.nad27=function(){return n("tmerc",u)},t.wgs84=function(){return n("tmerc",o)}});
+  </script>
 
-        let currentLatitude = null;
-        let currentLongitude = null;
-        let stream = null; // To store the video stream so it can be stopped
-        let map = null; // Leaflet map object
-        let marker = null; // Location marker on the map
-        let watchId = null; // To store the watchPosition ID for clearing
+  <script>
+    let stream;
+    let latitude, longitude;
+    let photoDataUrl;
 
-        // --- Initialize Proj4js for TM3 53.1 ---
-        // This is the projection definition for TM3 53.1. You need to ensure these parameters are accurate.
-        // Central Meridian for 53.1 (131.1 BT)
-        // Scale Factor (usually 0.9999 for TM3)
-        // False Easting and False Northing
-        // For Indonesian TM3, it usually uses Geodetic Datum DGN 1995 or ITRF.
-        // Assumption: DGN 1995 (equivalent to WGS84 for many applications, but better to confirm)
-        proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs"); // WGS84
-        proj4.defs("TM3:53.1", "+proj=tmerc +lat_0=0 +lon_0=131.1 +k=0.9999 +x_0=200000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
-        // Important: Verify these TM3 53.1 parameters with official ATRBPN sources.
+    const status = document.getElementById("status");
+    const getLocationBtn = document.getElementById("getLocationBtn");
+    const cameraSection = document.getElementById("cameraSection");
+    const video = document.getElementById("video");
+    const result = document.getElementById("result");
+    const photo = document.getElementById("photo");
+    const coordinates = document.getElementById("coordinates");
 
-        // --- Modal Functions ---
-        function showModal(title, message) {
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            permissionModal.classList.add('visible');
-        }
+    // Batas wilayah Fakfak (opsional)
+    const FAKFAK_BOUNDS = {
+      minLat: -2.5, maxLat: -2.0,
+      minLon: 131.5, maxLon: 132.5
+    };
 
-        function hideModal() {
-            permissionModal.classList.remove('visible');
-        }
+    // Dapatkan lokasi
+    getLocationBtn.onclick = function () {
+      if (!navigator.geolocation) {
+        status.textContent = "❌ Geolocation tidak didukung oleh browser ini.";
+        return;
+      }
 
-        modalCloseButton.addEventListener('click', hideModal);
+      status.textContent = "📍 Mendeteksi lokasi... Harap izinkan akses lokasi.";
+      navigator.geolocation.getCurrentPosition(success, error);
+    };
 
-        // --- Function to start the camera ---
-        startButton.addEventListener('click', async () => {
-            statusSpan.textContent = 'Memulai kamera...';
-            hideModal(); // Hide any existing modal
+    function success(position) {
+      latitude = position.coords.latitude;
+      longitude = position.coords.longitude;
 
-            try {
-                // Stop existing stream if any
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                }
+      // Validasi wilayah Fakfak
+      if (
+        latitude < FAKFAK_BOUNDS.minLat ||
+        latitude > FAKFAK_BOUNDS.maxLat ||
+        longitude < FAKFAK_BOUNDS.minLon ||
+        longitude > FAKFAK_BOUNDS.maxLon
+      ) {
+        status.innerHTML = `
+          ⚠️ Lokasi di luar wilayah Fakfak.<br>
+          Saat ini: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}<br>
+          Harap gunakan di wilayah Fakfak.
+        `;
+        return;
+      }
 
-                // Check if Leaflet is loaded before initializing map
-                // This helps prevent "L is not defined" errors if the Leaflet script fails to load.
-                if (typeof L === 'undefined') {
-                    showModal('Error Peta!', 'Library peta (Leaflet) gagal dimuat. Pastikan koneksi internet stabil atau coba muat ulang halaman.');
-                    console.error('Leaflet library (L) is not defined. Map initialization skipped.');
-                    return; // Stop execution if Leaflet isn't loaded
-                }
+      // Konversi ke TM-3 53.1
+      const tm3 = proj4("TM3-53.1").forward([longitude, latitude]);
+      const x = tm3[0].toFixed(2);
+      const y = tm3[1].toFixed(2);
 
+      status.innerHTML = `
+        ✅ Lokasi Fakfak terdeteksi!<br>
+        WGS84: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}<br>
+        <strong>TM-3 53.1: X=${x}, Y=${y}</strong>
+      `;
 
-                // Request camera permission
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-                video.srcObject = stream;
-                video.play();
-                statusSpan.textContent = 'Kamera aktif. Mendapatkan lokasi...';
-                clickButton.disabled = false;
-                startButton.textContent = 'Mulai Ulang Kamera';
+      initCamera();
+    }
 
-                // Call map and location initialization
-                initMap();
-                getLocation();
+    function error(err) {
+      status.textContent = "❌ Gagal deteksi lokasi: " + err.message;
+    }
 
-            } catch (err) {
-                console.error("Gagal mengakses kamera: ", err);
-                clickButton.disabled = true;
-                if (err.name === 'NotAllowedError') {
-                    statusSpan.textContent = 'Error: Izin kamera ditolak. Mohon izinkan akses kamera di pengaturan browser Anda.';
-                    showModal('Izin Kamera Ditolak!', 'Aplikasi ini membutuhkan akses kamera. Mohon izinkan akses kamera di pengaturan browser Anda (biasanya di bagian "Situs" atau "Izin") dan muat ulang halaman ini.');
-                } else if (err.name === 'NotFoundError') {
-                    statusSpan.textContent = 'Error: Kamera tidak ditemukan. Pastikan perangkat Anda memiliki kamera yang berfungsi.';
-                    showModal('Kamera Tidak Ditemukan!', 'Tidak ada kamera yang terdeteksi di perangkat ini. Pastikan perangkat Anda memiliki kamera yang berfungsi dan terhubung dengan baik.');
-                } else if (err.name === 'NotReadableError') {
-                    statusSpan.textContent = 'Error: Kamera sedang digunakan oleh aplikasi lain atau tidak dapat diakses.';
-                    showModal('Kamera Tidak Dapat Diakses!', 'Kamera Anda mungkin sedang digunakan oleh aplikasi lain atau ada masalah perangkat keras. Coba tutup aplikasi lain yang menggunakan kamera atau restart perangkat Anda.');
-                } else if (err.name === 'OverconstrainedError') {
-                    statusSpan.textContent = 'Error: Konfigurasi kamera tidak didukung.';
-                    showModal('Konfigurasi Kamera Tidak Didukung!', 'Browser tidak dapat menemukan kamera yang sesuai dengan pengaturan yang diminta (misalnya, resolusi atau mode menghadap).');
-                }
-                else {
-                    statusSpan.textContent = `Error: Gagal mengakses kamera. (${err.name})`;
-                    showModal('Gagal Mengakses Kamera!', `Terjadi kesalahan tidak dikenal saat mencoba mengakses kamera: ${err.message}.`);
-                }
-            }
-        });
+    // Aktifkan kamera
+    async function initCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        video.srcObject = stream;
+        cameraSection.classList.remove("hidden");
+        getLocationBtn.disabled = true;
+      } catch (err) {
+        status.textContent = "❌ Gagal akses kamera: " + err.message;
+      }
+    }
 
-        // --- Function to initialize the Leaflet map ---
-        function initMap() {
-            // Ensure L is defined before proceeding
-            if (typeof L === 'undefined') {
-                console.error('Leaflet library (L) is not defined. Cannot initialize map.');
-                return;
-            }
+    // Ambil foto
+    document.getElementById("captureBtn").onclick = function () {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
 
-            if (map === null) {
-                // Initialize map with a default coordinate (e.g., center of Fakfak)
-                // These coordinates will be updated once the location is obtained
-                map = L.map('map').setView([-2.9103, 132.3216], 13); // Example coordinates for Fakfak
-                
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(map);
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
 
-                mapDiv.style.display = 'block'; // Show the map after initialization
-                map.invalidateSize(); // Important to ensure the map is rendered correctly
-            }
-        }
+      // Dapatkan koordinat TM-3 lagi
+      const tm3 = proj4("TM3-53.1").forward([longitude, latitude]);
+      const x = tm3[0].toFixed(2);
+      const y = tm3[1].toFixed(2);
 
-        // --- Function to get location ---
-        function getLocation() {
-            if (navigator.geolocation) {
-                // Clear previous watchPosition if any
-                if (watchId !== null) {
-                    navigator.geolocation.clearWatch(watchId);
-                }
+      photoDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+      photo.src = photoDataUrl;
 
-                // Using watchPosition for continuous location updates
-                watchId = navigator.geolocation.watchPosition(
-                    (position) => {
-                        currentLatitude = position.coords.latitude;
-                        currentLongitude = position.coords.longitude;
-                        const accuracy = position.coords.accuracy;
+      coordinates.innerHTML = `
+        <strong>Koordinat TM-3 53.1:</strong><br>
+        X = ${x} m<br>
+        Y = ${y} m<br>
+        <small>WGS84: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}</small>
+      `;
 
-                        wgs84CoordSpan.textContent = `${currentLatitude.toFixed(6)}, ${currentLongitude.toFixed(6)} (Akurasi: ${accuracy.toFixed(2)} m)`;
+      result.classList.remove("hidden");
+      cameraSection.classList.add("hidden");
+      stream.getTracks().forEach(track => track.stop());
+    };
 
-                        // Convert to TM3 53.1
-                        try {
-                            const tm3Coords = proj4("EPSG:4326", "TM3:53.1", [currentLongitude, currentLatitude]);
-                            tm3CoordSpan.textContent = `X: ${tm3Coords[0].toFixed(2)} m, Y: ${tm3Coords[1].toFixed(2)} m`;
-                        } catch (e) {
-                            console.error("Gagal konversi koordinat TM3:", e);
-                            tm3CoordSpan.textContent = "Gagal konversi TM3";
-                        }
+    // Simpan foto
+    window.downloadPhoto = function () {
+      const tm3 = proj4("TM3-53.1").forward([longitude, latitude]);
+      const x = tm3[0].toFixed(0);
+      const y = tm3[1].toFixed(0);
 
-                        statusSpan.textContent = 'Kamera aktif & lokasi didapat.';
+      const now = new Date();
+      const timestamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+      const filename = `FAKF_X${x}_Y${y}_${timestamp}.jpg`;
 
-                        // Update marker position on the map
-                        if (map) {
-                            const latLng = L.latLng(currentLatitude, currentLongitude);
-                            if (marker) {
-                                marker.setLatLng(latLng);
-                            } else {
-                                marker = L.marker(latLng).addTo(map)
-                                    .bindPopup(`Lokasi Anda<br>WGS84: ${currentLatitude.toFixed(4)}, ${currentLongitude.toFixed(4)}<br>TM3: X: ${tm3Coords[0].toFixed(2)}, Y: ${tm3Coords[1].toFixed(2)}`)
-                                    .openPopup();
-                            }
-                            map.setView(latLng, 16); // Focus map to the location with zoom level 16
-                        }
+      const a = document.createElement("a");
+      a.href = photoDataUrl;
+      a.download = filename;
+      a.click();
+    };
 
-                    },
-                    (error) => {
-                        console.error("Gagal mendapatkan lokasi: ", error);
-                        if (error.code === error.PERMISSION_DENIED) {
-                            statusSpan.textContent = 'Error: Izin lokasi ditolak. Mohon izinkan akses lokasi di pengaturan browser Anda.';
-                            showModal('Izin Lokasi Ditolak!', 'Aplikasi ini membutuhkan akses lokasi Anda. Mohon izinkan akses lokasi di pengaturan browser Anda (biasanya di bagian "Situs" atau "Izin") dan muat ulang halaman ini.');
-                        } else if (error.code === error.POSITION_UNAVAILABLE) {
-                            statusSpan.textContent = 'Error: Lokasi tidak tersedia. Pastikan GPS aktif dan sinyal bagus.';
-                            showModal('Lokasi Tidak Tersedia!', 'Perangkat Anda tidak dapat menentukan lokasi. Pastikan GPS aktif dan Anda berada di area dengan sinyal yang baik.');
-                        } else if (error.code === error.TIMEOUT) {
-                            statusSpan.textContent = 'Error: Waktu habis saat mendapatkan lokasi. Mencoba lagi...';
-                            // No modal for timeout, as it might resolve itself
-                        } else {
-                            statusSpan.textContent = `Error: Gagal mendapatkan lokasi. (${error.message})`;
-                            showModal('Gagal Mendapatkan Lokasi!', `Terjadi kesalahan saat mencoba mendapatkan lokasi: ${error.message}.`);
-                        }
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        maximumAge: 0,
-                        timeout: 10000 // Increase timeout for slower devices
-                    }
-                );
-            } else {
-                statusSpan.textContent = "Geolocation tidak didukung oleh browser ini.";
-                clickButton.disabled = true;
-                showModal('Geolocation Tidak Didukung!', 'Browser Anda tidak mendukung Geolocation API. Aplikasi ini tidak dapat berfungsi tanpa akses lokasi.');
-            }
-        }
-
-        // --- Function to take a photo ---
-        clickButton.addEventListener('click', () => {
-            if (!currentLatitude || !currentLongitude) {
-                showModal("Lokasi Belum Didapatkan!", "Lokasi Anda belum berhasil didapatkan. Mohon tunggu beberapa saat atau pastikan GPS aktif dan sinyal bagus.");
-                return;
-            }
-
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            // Get data URL from canvas
-            const imageDataURL = canvas.toDataURL('image/jpeg', 0.9); // Quality 0.9
-
-            // Display photo preview and its result container
-            photoPreview.src = imageDataURL;
-            photoPreview.style.display = 'block';
-            photoResultContainer.style.display = 'flex'; // Show photo result container
-
-            // Create file name with TM3 coordinates
-            const tm3Coords = proj4("EPSG:4326", "TM3:53.1", [currentLongitude, currentLatitude]);
-            // File name format: foto_Xcoordinate_Ycoordinate_YYMMDD_HHMMSS.jpg
-            const now = new Date();
-            const dateStr = `${now.getFullYear().toString().slice(2)}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
-            const timeStr = `${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
-            const fileName = `foto_${tm3Coords[0].toFixed(0)}_${tm3Coords[1].toFixed(0)}_${dateStr}_${timeStr}.jpg`;
-
-            // Set download link
-            downloadLink.href = imageDataURL;
-            downloadLink.download = fileName; // File name when downloaded
-            downloadLink.textContent = `Unduh Foto: ${fileName}`;
-            downloadLink.style.display = 'block';
-
-            statusSpan.textContent = `Foto berhasil diambil dan siap diunduh.`;
-        });
-    </script>
+    function pad(num) {
+      return num.toString().padStart(2, '0');
+    }
+  </script>
 </body>
 </html>

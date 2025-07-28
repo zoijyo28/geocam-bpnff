@@ -4,97 +4,183 @@
   <meta charset="UTF-8" />
   <title>GeoCam Fakfak</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      background: #f0f0f0;
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
       margin: 0;
-      padding: 10px;
+      padding: 20px;
+      color: #333;
+      text-align: center;
     }
-    video, canvas, #map {
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .container {
       max-width: 400px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 15px;
+    }
+
+    video, canvas {
       width: 100%;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 16px;
+      margin: 5px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: #1e90ff;
+      color: white;
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #0f74d4;
+    }
+
+    #info {
+      margin: 10px 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    #warning {
+      color: red;
+      font-weight: bold;
+    }
+
+    #map {
+      height: 200px;
       border-radius: 8px;
       margin-bottom: 10px;
     }
-    button {
-      padding: 10px 20px;
-      font-size: 1rem;
-      cursor: pointer;
+
+    .status-ready {
+      color: green;
+      font-weight: bold;
     }
-    #info {
-      font-size: 0.9rem;
-      margin-bottom: 10px;
+
+    .status-waiting {
+      color: orange;
+      font-weight: bold;
     }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📸 GeoCam Fakfak</h2>
-  <video id="video" autoplay playsinline></video><br>
-  <button onclick="takePhoto()">📷 Ambil Foto</button>
-  <div id="info">Mendeteksi lokasi...</div>
-  <div id="map"></div>
-  <canvas id="canvas" style="display:none;"></canvas>
+  <div class="container">
+    <h2>📸 GeoCam Fakfak</h2>
+    <video id="video" autoplay playsinline></video><br>
+    <button onclick="flipCamera()">🔄 Ganti Kamera</button>
+    <button onclick="takePhoto()">📷 Ambil Foto</button>
+    <div id="info">📍 Mendeteksi lokasi GPS...</div>
+    <div id="warning"></div>
+    <div id="map"></div>
+    <canvas id="canvas" style="display:none;"></canvas>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const info = document.getElementById("info");
-    let lat = 0, lon = 0, alamat = "Mencari alamat...";
-    let map, miniMapImg;
+    let video = document.getElementById("video");
+    let canvas = document.getElementById("canvas");
+    let info = document.getElementById("info");
+    let warning = document.getElementById("warning");
+    let lat = null, lon = null, alamat = "Mencari alamat...";
+    let map;
+    let currentCamera = "environment";
+    let currentStream;
 
-    // Aktifkan kamera
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => video.srcObject = stream)
-      .catch(err => alert("Kamera gagal dibuka: " + err));
+    function startCamera(facingMode = "environment") {
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
 
-    // Ambil lokasi
-    navigator.geolocation.getCurrentPosition(pos => {
-      lat = pos.coords.latitude;
-      lon = pos.coords.longitude;
-      getAlamat(lat, lon);
-      loadMap(lat, lon);
-    }, err => {
-      alert("Gagal mengambil lokasi: " + err.message);
-    });
-
-    function getAlamat(lat, lon) {
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
-        .then(res => res.json())
-        .then(data => {
-          alamat = data.display_name || "Alamat tidak ditemukan";
-          info.innerHTML = `<b>Lat:</b> ${lat.toFixed(6)} <b>Lon:</b> ${lon.toFixed(6)}<br><b>Alamat:</b> ${alamat}`;
+      navigator.mediaDevices.getUserMedia({ video: { facingMode } })
+        .then(stream => {
+          currentStream = stream;
+          video.srcObject = stream;
+        })
+        .catch(err => {
+          warning.innerText = "❌ Kamera tidak tersedia: " + err.message;
         });
     }
 
-    function loadMap(lat, lon) {
-      map = L.map('map').setView([lat, lon], 16);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-      }).addTo(map);
-      L.marker([lat, lon]).addTo(map).bindPopup("Lokasi Anda").openPopup();
+    function flipCamera() {
+      currentCamera = currentCamera === "environment" ? "user" : "environment";
+      startCamera(currentCamera);
     }
 
+    startCamera();
+
+    function updateLocation() {
+      navigator.geolocation.getCurrentPosition(pos => {
+        lat = pos.coords.latitude;
+        lon = pos.coords.longitude;
+
+        info.innerHTML = `<span class="status-ready">✅ GPS Siap</span><br>Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`;
+        warning.innerText = "";
+
+        // Update alamat
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+          .then(res => res.json())
+          .then(data => {
+            alamat = data.display_name || "Alamat tidak ditemukan";
+            info.innerHTML += `<br><b>📍Alamat:</b> ${alamat}`;
+          });
+
+        // Tampilkan peta
+        if (!map) {
+          map = L.map('map').setView([lat, lon], 16);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+          }).addTo(map);
+          L.marker([lat, lon]).addTo(map).bindPopup("Lokasi Anda").openPopup();
+        } else {
+          map.setView([lat, lon]);
+        }
+
+      }, err => {
+        warning.innerText = "❗ Tidak dapat mendeteksi GPS: " + err.message;
+        info.innerHTML = `<span class="status-waiting">⌛ Menunggu koordinat...</span>`;
+      });
+    }
+
+    updateLocation();
+    setInterval(updateLocation, 5000); // cek ulang lokasi setiap 5 detik
+
     async function takePhoto() {
-      // Ambil gambar dari video
+      if (lat === null || lon === null) {
+        warning.innerText = "❗ Koordinat belum tersedia! Tunggu GPS siap.";
+        return;
+      }
+
       canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight + 130; // tambah tinggi untuk teks + peta kecil
+      canvas.height = video.videoHeight + 140;
       const ctx = canvas.getContext("2d");
 
-      ctx.drawImage(video, 0, 0); // gambar utama
+      ctx.drawImage(video, 0, 0);
 
-      // Gambar info teks
+      // Tulis data lokasi
       ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.fillRect(0, video.videoHeight, canvas.width, 130);
-      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, video.videoHeight, canvas.width, 140);
+      ctx.fillStyle = "white";
       ctx.font = "16px sans-serif";
-      ctx.fillText(`Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`, 10, video.videoHeight + 25);
+      ctx.fillText(`Lat: ${lat.toFixed(6)} | Lon: ${lon.toFixed(6)}`, 10, video.videoHeight + 25);
       ctx.fillText(`Alamat: ${alamat.slice(0, 60)}...`, 10, video.videoHeight + 50);
 
-      // Ambil gambar peta sebagai image (static map style)
+      // Ambil gambar peta sebagai image
       const mapURL = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=16&size=300x100&markers=${lat},${lon},red-pushpin`;
       const mapImg = new Image();
       mapImg.crossOrigin = "anonymous";
@@ -102,9 +188,8 @@
       mapImg.onload = () => {
         ctx.drawImage(mapImg, canvas.width - 310, video.videoHeight + 5, 300, 100);
 
-        // Simpan
         const link = document.createElement("a");
-        link.download = `foto-lokasi-fakfak.jpg`;
+        link.download = `geo-fakfak.jpg`;
         link.href = canvas.toDataURL("image/jpeg");
         link.click();
       };
